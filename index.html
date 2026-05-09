@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morse WA Ultra-Stable</title>
+    <title>Morse WA Ultra-Stable V7</title>
     <style>
         body { font-family: sans-serif; background: #0b0e11; color: #00ff41; text-align: center; padding: 20px; }
-        .box { max-width: 400px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; }
-        textarea { width: 100%; height: 100px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 10px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; }
-        button { width: 100%; padding: 14px; margin-bottom: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .box { max-width: 400px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+        textarea { width: 100%; height: 100px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 10px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
+        button { width: 100%; padding: 14px; margin-bottom: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .btn-send { background: #00ff41; color: #000; }
-        #status { margin-top: 15px; color: #ffeb3b; font-size: 0.9em; min-height: 20px; }
+        button:active { transform: scale(0.95); }
+        #status { margin-top: 15px; color: #ffeb3b; font-size: 0.9em; min-height: 20px; font-family: monospace; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h3>📟 Morse Transmitter V6</h3>
+    <h3>📟 Morse Transmitter V7</h3>
     <textarea id="inputTeks" placeholder="Ketik pesan rahasia..."></textarea>
     <button class="btn-send" onclick="generateAndShare()">🚀 KIRIM KE WHATSAPP</button>
     <div id="status">Status: Ready</div>
@@ -29,10 +30,10 @@
         const text = document.getElementById('inputTeks').value.toUpperCase();
         if(!text) return alert("Isi teks dulu!");
         const statusText = document.getElementById('status');
-        statusText.innerText = "⏳ Memproses Audio...";
+        statusText.innerText = "⏳ Generating WAV...";
 
         const sampleRate = 8000;
-        const unit = 0.1; 
+        const unit = 0.12; 
         const frequency = 800;
         let audioData = [];
 
@@ -50,7 +51,10 @@
             }
         }
 
-        // Encode Morse ke Array Audio
+        // --- PADDING AWAL (0.6 detik hening) ---
+        addSilence(0.6);
+
+        // Encode Morse
         text.split('').forEach(char => {
             const code = morseMap[char];
             if (code) {
@@ -62,24 +66,26 @@
             }
         });
 
-        // Convert ke format WAV (Header manual agar sistem tidak bingung)
+        // --- PADDING AKHIR (0.6 detik hening) ---
+        addSilence(0.6);
+
         const wavBuffer = createWavBuffer(audioData, sampleRate);
         const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-        const file = new File([blob], "pesan.wav", { type: 'audio/wav' });
+        const file = new File([blob], "morse_msg.wav", { type: 'audio/wav' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
-                await navigator.share({ files: [file], title: 'Morse Code' });
-                statusText.innerText = "✅ Berhasil!";
+                await navigator.share({ files: [file], title: 'Morse' });
+                statusText.innerText = "✅ Sukses!";
             } catch (err) {
-                statusText.innerText = "⚠️ Gagal/Batal: " + err.message;
+                statusText.innerText = "⚠️ Batal: " + err.message;
             }
         } else {
-            statusText.innerText = "💾 Browser tidak support Share API, mendownload...";
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = "pesan.wav";
+            a.download = "morse.wav";
             a.click();
+            statusText.innerText = "💾 Downloaded.";
         }
     }
 
