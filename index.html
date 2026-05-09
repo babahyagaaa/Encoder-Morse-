@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morse Pro Encoder V9</title>
+    <title>Morse Pro V10</title>
     <style>
         body { font-family: sans-serif; background: #0b0e11; color: #00ff41; text-align: center; padding: 20px; }
-        .box { max-width: 400px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; }
-        textarea { width: 100%; height: 100px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 10px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
-        button { width: 100%; padding: 14px; background: #00ff41; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .box { max-width: 400px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+        textarea { width: 100%; height: 120px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
+        button { width: 100%; padding: 15px; background: #00ff41; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         #status { margin-top: 15px; color: #ffeb3b; font-size: 0.9em; font-family: monospace; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h3>📟 Pro Morse Encoder (High Speed)</h3>
-    <textarea id="inputTeks" placeholder="Ketik pesan panjang..."></textarea>
-    <button onclick="generateAndShare()">🚀 KIRIM KE WA (PRO)</button>
+    <h3>📟 Morse Pro V10</h3>
+    <textarea id="inputTeks" placeholder="Tulis pesan rahasia..."></textarea>
+    <button onclick="generateAndShare()">🚀 KIRIM KE WA</button>
     <div id="status">Status: Ready</div>
 </div>
 
@@ -31,15 +31,14 @@
         statusText.innerText = "⏳ Encoding Pro Speed...";
 
         const sampleRate = 8000;
-        const unit = 0.06; // PRO SPEED (Ngebut banget!)
+        const unit = 0.06; // Kecepatan Pro
         const frequency = 800;
         let audioData = [];
 
         const addBeep = (dur) => {
             const samples = Math.floor(sampleRate * dur);
+            const ramp = Math.floor(0.005 * sampleRate);
             for (let i = 0; i < samples; i++) {
-                // Pake Fade In/Out dikit biar gak ada bunyi 'klik' yang dikira T
-                const ramp = 0.005 * sampleRate;
                 let amp = 1;
                 if (i < ramp) amp = i / ramp;
                 else if (i > samples - ramp) amp = (samples - i) / ramp;
@@ -52,38 +51,46 @@
             for (let i = 0; i < samples; i++) audioData.push(0);
         };
 
-        addSilence(0.8); // Awal hening
+        // 1. Padding Awal (0.8 detik) biar WA gaperlu buru-buru
+        addSilence(0.8);
 
+        // 2. Loop Morse
         text.split('').forEach(char => {
             if (char === ' ') {
-                addSilence(unit * 7); // Jeda antar kata standar pro
+                addSilence(unit * 7);
             } else {
                 const code = morseMap[char];
                 if (code) {
                     code.split('').forEach(symbol => {
                         addBeep(symbol === '.' ? unit : unit * 3);
-                        addSilence(unit); // Jeda antar simbol
+                        addSilence(unit);
                     });
-                    addSilence(unit * 3); // Jeda antar huruf
+                    addSilence(unit * 3);
                 }
             }
         });
 
-        addSilence(1.5); // Akhir hening panjang
+        // 3. Padding Akhir (Ekstra 2 Detik Hening Total)
+        // Ini buat jaga-gaga biar ekor audionya ga dikira noise
+        addSilence(2.0);
 
         const wavBuffer = createWavBuffer(audioData, sampleRate);
         const blob = new Blob([wavBuffer], { type: 'audio/wav' });
         const file = new File([blob], "morse_pro.wav", { type: 'audio/wav' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file] });
-            statusText.innerText = "✅ Berhasil!";
+            try {
+                await navigator.share({ files: [file], title: 'Morse Pro' });
+                statusText.innerText = "✅ Berhasil!";
+            } catch (err) {
+                statusText.innerText = "⚠️ Batal: " + err.message;
+            }
         } else {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = "morse_pro.wav";
             a.click();
-            statusText.innerText = "💾 Downloaded.";
+            statusText.innerText = "💾 Tersimpan di Downloads.";
         }
     }
 
