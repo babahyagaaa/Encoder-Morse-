@@ -3,35 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morse Pro V10</title>
+    <title>Morse Pro V11 - Final Stable</title>
     <style>
         body { font-family: sans-serif; background: #0b0e11; color: #00ff41; text-align: center; padding: 20px; }
-        .box { max-width: 400px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; box-shadow: 0 0 20px rgba(0,255,65,0.2); }
-        textarea { width: 100%; height: 120px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
-        button { width: 100%; padding: 15px; background: #00ff41; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .box { max-width: 450px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; box-shadow: 0 0 25px rgba(0,255,65,0.2); }
+        textarea { width: 100%; height: 150px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; resize: vertical; }
+        button { width: 100%; padding: 16px; background: #00ff41; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
         #status { margin-top: 15px; color: #ffeb3b; font-size: 0.9em; font-family: monospace; }
+        .info { font-size: 0.75em; color: #888; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h3>📟 Morse Pro V10</h3>
-    <textarea id="inputTeks" placeholder="Tulis pesan rahasia..."></textarea>
-    <button onclick="generateAndShare()">🚀 KIRIM KE WA</button>
+    <h3>📟 Morse Pro V11 (Final)</h3>
+    <textarea id="inputTeks" placeholder="Ketik teks panjang + simbol (. , ! ?)"></textarea>
+    <button onclick="generateAndShare()">🚀 KIRIM KE WHATSAPP</button>
     <div id="status">Status: Ready</div>
+    <div class="info">Support: A-Z, 0-9, Titik, Koma, Tanya, Seru</div>
 </div>
 
 <script>
-    const morseMap = { 'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/' };
+    const morseMap = { 
+    'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 
+    'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 
+    'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 
+    'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', 
+    '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/',
+    '.': '.-.-.-', ',': '--..--', '?': '..--..', '!': '-.-.--', '-': '-....-', '/': '-..-.', '"': '.-..-.'
+};
 
     async function generateAndShare() {
         const text = document.getElementById('inputTeks').value.toUpperCase();
         if(!text) return;
         const statusText = document.getElementById('status');
-        statusText.innerText = "⏳ Encoding Pro Speed...";
+        statusText.innerText = "⏳ Processing Long Audio...";
 
         const sampleRate = 8000;
-        const unit = 0.06; // Kecepatan Pro
+        const unit = 0.06; // Pro Speed
         const frequency = 800;
         let audioData = [];
 
@@ -39,9 +48,9 @@
             const samples = Math.floor(sampleRate * dur);
             const ramp = Math.floor(0.005 * sampleRate);
             for (let i = 0; i < samples; i++) {
-                let amp = 1;
-                if (i < ramp) amp = i / ramp;
-                else if (i > samples - ramp) amp = (samples - i) / ramp;
+                let amp = 0.8; // Sedikit diturunin biar gak gampang pecah
+                if (i < ramp) amp *= (i / ramp);
+                else if (i > samples - ramp) amp *= ((samples - i) / ramp);
                 audioData.push(amp * Math.sin(2 * Math.PI * frequency * i / sampleRate));
             }
         };
@@ -51,12 +60,10 @@
             for (let i = 0; i < samples; i++) audioData.push(0);
         };
 
-        // 1. Padding Awal (0.8 detik) biar WA gaperlu buru-buru
-        addSilence(0.8);
+        addSilence(1.0); // Padding awal biar WA gak kaget
 
-        // 2. Loop Morse
         text.split('').forEach(char => {
-            if (char === ' ') {
+            if (char === ' ' || char === '/') {
                 addSilence(unit * 7);
             } else {
                 const code = morseMap[char];
@@ -70,27 +77,25 @@
             }
         });
 
-        // 3. Padding Akhir (Ekstra 2 Detik Hening Total)
-        // Ini buat jaga-gaga biar ekor audionya ga dikira noise
-        addSilence(2.0);
+        addSilence(2.5); // Padding akhir ekstra aman
 
         const wavBuffer = createWavBuffer(audioData, sampleRate);
         const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-        const file = new File([blob], "morse_pro.wav", { type: 'audio/wav' });
+        const file = new File([blob], "morse_final.wav", { type: 'audio/wav' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
-                await navigator.share({ files: [file], title: 'Morse Pro' });
-                statusText.innerText = "✅ Berhasil!";
+                await navigator.share({ files: [file] });
+                statusText.innerText = "✅ Berhasil Terkirim!";
             } catch (err) {
                 statusText.innerText = "⚠️ Batal: " + err.message;
             }
         } else {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = "morse_pro.wav";
+            a.download = "morse_final.wav";
             a.click();
-            statusText.innerText = "💾 Tersimpan di Downloads.";
+            statusText.innerText = "💾 Downloaded.";
         }
     }
 
@@ -98,22 +103,26 @@
         const buffer = new ArrayBuffer(44 + samples.length * 2);
         const view = new DataView(buffer);
         const writeString = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
+        
         writeString(0, 'RIFF');
         view.setUint32(4, 36 + samples.length * 2, true);
         writeString(8, 'WAVE');
         writeString(12, 'fmt ');
         view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, 1, true);
+        view.setUint16(20, 1, true); // PCM
+        view.setUint16(22, 1, true); // Mono
         view.setUint32(24, sampleRate, true);
         view.setUint32(28, sampleRate * 2, true);
         view.setUint16(32, 2, true);
         view.setUint16(34, 16, true);
         writeString(36, 'data');
         view.setUint32(40, samples.length * 2, true);
+
         let offset = 44;
         for (let i = 0; i < samples.length; i++, offset += 2) {
-            const s = Math.max(-1, Math.min(1, samples[i]));
+            // Anti-Kresek: Clamp sinyal agar tetap di range Int16
+            let s = samples[i];
+            s = Math.max(-1, Math.min(1, s));
             view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
         }
         return buffer;
