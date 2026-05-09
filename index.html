@@ -3,99 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morse Pro V11 - Final Stable</title>
+    <title>Morse Pro V12</title>
     <style>
         body { font-family: sans-serif; background: #0b0e11; color: #00ff41; text-align: center; padding: 20px; }
-        .box { max-width: 450px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; box-shadow: 0 0 25px rgba(0,255,65,0.2); }
-        textarea { width: 100%; height: 150px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; resize: vertical; }
+        .box { max-width: 450px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; box-shadow: 0 0 30px rgba(0,255,65,0.3); }
+        textarea { width: 100%; height: 160px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
         button { width: 100%; padding: 16px; background: #00ff41; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
         #status { margin-top: 15px; color: #ffeb3b; font-size: 0.9em; font-family: monospace; }
-        .info { font-size: 0.75em; color: #888; margin-top: 10px; }
+        .footer { font-size: 0.7em; color: #555; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h3>📟 Morse Pro V11 (Final)</h3>
-    <textarea id="inputTeks" placeholder="Ketik teks panjang + simbol (. , ! ?)"></textarea>
+    <h3>📟 Morse Pro V12</h3>
+    <textarea id="inputTeks" placeholder="Ketik pesan panjang... Simbol ' dan &quot; aman!"></textarea>
     <button onclick="generateAndShare()">🚀 KIRIM KE WHATSAPP</button>
     <div id="status">Status: Ready</div>
-    <div class="info">Support: A-Z, 0-9, Titik, Koma, Tanya, Seru</div>
 </div>
 
 <script>
     const morseMap = { 
-    'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 
-    'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 
-    'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 
-    'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', 
-    '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/',
-    '.': '.-.-.-', ',': '--..--', '?': '..--..', '!': '-.-.--', '-': '-....-', '/': '-..-.', '"': '.-..-.'
-};
+        'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 
+        'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 
+        'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 
+        'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', 
+        '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/',
+        '.': '.-.-.-', ',': '--..--', '?': '..--..', '!': '-.-.--', '-': '-....-', '/': '-..-.', 
+        '"': '.-..-.', "'": '.----.'
+    };
 
     async function generateAndShare() {
         const text = document.getElementById('inputTeks').value.toUpperCase();
         if(!text) return;
         const statusText = document.getElementById('status');
-        statusText.innerText = "⏳ Processing Long Audio...";
+        statusText.innerText = "⏳ Building Fortress Audio...";
 
         const sampleRate = 8000;
-        const unit = 0.06; // Pro Speed
+        const unit = 0.06; 
         const frequency = 800;
         let audioData = [];
 
+        // Fungsi Beep dengan Smooth Ramping (Anti-Gema/Klik)
         const addBeep = (dur) => {
             const samples = Math.floor(sampleRate * dur);
-            const ramp = Math.floor(0.005 * sampleRate);
+            const fade = Math.floor(0.008 * sampleRate); // 8ms fade
             for (let i = 0; i < samples; i++) {
-                let amp = 0.8; // Sedikit diturunin biar gak gampang pecah
-                if (i < ramp) amp *= (i / ramp);
-                else if (i > samples - ramp) amp *= ((samples - i) / ramp);
+                let amp = 0.7; // Volume aman
+                if (i < fade) amp *= (i / fade);
+                else if (i > samples - fade) amp *= ((samples - i) / fade);
                 audioData.push(amp * Math.sin(2 * Math.PI * frequency * i / sampleRate));
             }
         };
 
+        // Fungsi Silence dengan Ghost Noise (Anti-Trim WhatsApp)
         const addSilence = (dur) => {
             const samples = Math.floor(sampleRate * dur);
-            for (let i = 0; i < samples; i++) audioData.push(0);
+            for (let i = 0; i < samples; i++) {
+                // Ghost Noise: suara acak super lemah biar WA gak berani motong
+                audioData.push((Math.random() * 2 - 1) * 0.002);
+            }
         };
 
-        addSilence(1.0); // Padding awal biar WA gak kaget
+        addSilence(1.0); // Start padding
 
         text.split('').forEach(char => {
-            if (char === ' ' || char === '/') {
+            if (char === ' ') {
                 addSilence(unit * 7);
             } else {
-                const code = morseMap[char];
-                if (code) {
-                    code.split('').forEach(symbol => {
-                        addBeep(symbol === '.' ? unit : unit * 3);
-                        addSilence(unit);
-                    });
-                    addSilence(unit * 3);
-                }
+                const code = morseMap[char] || "";
+                code.split('').forEach(symbol => {
+                    addBeep(symbol === '.' ? unit : unit * 3);
+                    addSilence(unit);
+                });
+                addSilence(unit * 3);
             }
         });
 
-        addSilence(2.5); // Padding akhir ekstra aman
+        addSilence(3.0); // End padding (lebih lama + ghost noise)
 
         const wavBuffer = createWavBuffer(audioData, sampleRate);
         const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-        const file = new File([blob], "morse_final.wav", { type: 'audio/wav' });
+        const file = new File([blob], "morse_fortress.wav", { type: 'audio/wav' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({ files: [file] });
-                statusText.innerText = "✅ Berhasil Terkirim!";
-            } catch (err) {
-                statusText.innerText = "⚠️ Batal: " + err.message;
-            }
+            await navigator.share({ files: [file] });
+            statusText.innerText = "✅ Terkirim!";
         } else {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = "morse_final.wav";
+            a.download = "morse_v12.wav";
             a.click();
-            statusText.innerText = "💾 Downloaded.";
+            statusText.innerText = "💾 Tersimpan.";
         }
     }
 
@@ -109,8 +108,8 @@
         writeString(8, 'WAVE');
         writeString(12, 'fmt ');
         view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true); // PCM
-        view.setUint16(22, 1, true); // Mono
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
         view.setUint32(24, sampleRate, true);
         view.setUint32(28, sampleRate * 2, true);
         view.setUint16(32, 2, true);
@@ -118,12 +117,9 @@
         writeString(36, 'data');
         view.setUint32(40, samples.length * 2, true);
 
-        let offset = 44;
-        for (let i = 0; i < samples.length; i++, offset += 2) {
-            // Anti-Kresek: Clamp sinyal agar tetap di range Int16
-            let s = samples[i];
-            s = Math.max(-1, Math.min(1, s));
-            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        for (let i = 0; i < samples.length; i++) {
+            let s = Math.max(-1, Math.min(1, samples[i]));
+            view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
         }
         return buffer;
     }
