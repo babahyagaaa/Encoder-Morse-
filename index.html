@@ -3,50 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morse Pro V13</title>
+    <title>Morse Pro V14 - Refined</title>
     <style>
-        body { font-family: sans-serif; background: #0b0e11; color: #00ff41; text-align: center; padding: 20px; }
+        body { font-family: 'Courier New', monospace; background: #0b0e11; color: #00ff41; text-align: center; padding: 20px; }
         .box { max-width: 450px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; box-shadow: 0 0 40px rgba(0,255,65,0.4); }
-        textarea { width: 100%; height: 160px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
-        button { width: 100%; padding: 18px; background: #00ff41; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; box-shadow: 0 4px 10px rgba(0,255,65,0.3); }
-        #status { margin-top: 15px; color: #ffeb3b; font-size: 0.9em; font-family: monospace; }
+        textarea { width: 100%; height: 160px; background: #000; color: #00ff41; border: 1px solid #00ff41; padding: 12px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
+        
+        /* Loading Bar Style */
+        .progress-container { width: 100%; background: #000; border: 1px solid #00ff41; height: 20px; border-radius: 10px; margin: 15px 0; display: none; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: #00ff41; transition: width 0.1s; }
+        
+        button { width: 100%; padding: 18px; background: #00ff41; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 16px; }
+        button:disabled { background: #004411; color: #008822; cursor: not-allowed; }
+        #status { margin-top: 15px; font-size: 0.85em; color: #ffeb3b; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h3>📟 Morse Pro V13</h3>
-    <textarea id="inputTeks" placeholder="Ketik teks super panjang... Sistem Normalize V2 diaktifkan!"></textarea>
-    <button onclick="generateAndShare()">🚀 KIRIM KE WHATSAPP</button>
+    <h3>📟 Morse Pro V14 (Refined)</h3>
+    <textarea id="inputTeks" placeholder="Ketik pesan rahasia..."></textarea>
+    
+    <div class="progress-container" id="loader">
+        <div id="progress-bar"></div>
+    </div>
+
+    <button id="sendBtn" onclick="processAndShare()">🚀 GENERATE & SHARE</button>
     <div id="status">Status: Ready</div>
 </div>
 
 <script>
-    const morseMap = { 
-        'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 
-        'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 
-        'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 
-        'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', 
-        '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/',
-        '.': '.-.-.-', ',': '--..--', '?': '..--..', '!': '-.-.--', '-': '-....-', '/': '-..-.', 
-        '"': '.-..-.', "'": '.----.'
-    };
+    const morseMap = { 'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': '/', '.': '.-.-.-', ',': '--..--', '?': '..--..', '!': '-.-.--', '-': '-....-', '/': '-..-.', '"': '.-..-.', "'": '.----.' };
 
-    async function generateAndShare() {
+    async function processAndShare() {
         const text = document.getElementById('inputTeks').value.toUpperCase();
-        if(!text) return;
-        const statusText = document.getElementById('status');
-        statusText.innerText = "⏳ Hard-Normalizing Audio...";
+        if(!text) return alert("Teks kosong!");
+
+        const btn = document.getElementById('sendBtn');
+        const loader = document.getElementById('loader');
+        const bar = document.getElementById('progress-bar');
+        const status = document.getElementById('status');
+
+        // Setup UI
+        btn.disabled = true;
+        loader.style.display = "block";
+        bar.style.width = "0%";
+        
+        status.innerText = "Step 1: Encoding Morse...";
+        await new Promise(r => setTimeout(r, 400)); // Jeda biar UI update
+        bar.style.width = "30%";
 
         const sampleRate = 8000;
         const unit = 0.06; 
         const mainFreq = 800;
-        const carrierFreq = 40; // Frekuensi super rendah biar mic/wa gak berani mute
+        const carrierFreq = 40; 
         let audioData = [];
 
         const addBeep = (dur) => {
             const samples = Math.floor(sampleRate * dur);
-            const fade = Math.floor(0.01 * sampleRate); // 10ms fade
+            const fade = Math.floor(0.01 * sampleRate);
             for (let i = 0; i < samples; i++) {
                 let amp = 0.9; 
                 if (i < fade) amp *= (i / fade);
@@ -58,17 +73,14 @@
         const addSilence = (dur) => {
             const samples = Math.floor(sampleRate * dur);
             for (let i = 0; i < samples; i++) {
-                // Carrier tone super lemah (0.01 volume) biar jalur audio tetep open
                 audioData.push(0.01 * Math.sin(2 * Math.PI * carrierFreq * i / sampleRate));
             }
         };
 
-        addSilence(1.0); // Pre-padding
-
+        addSilence(1.0);
         text.split('').forEach(char => {
-            if (char === ' ') {
-                addSilence(unit * 7);
-            } else {
+            if (char === ' ') addSilence(unit * 7);
+            else {
                 const code = morseMap[char] || "";
                 code.split('').forEach(symbol => {
                     addBeep(symbol === '.' ? unit : unit * 3);
@@ -77,36 +89,51 @@
                 addSilence(unit * 3);
             }
         });
+        addSilence(3.5);
 
-        addSilence(3.5); // End padding brutal (3.5 detik)
+        status.innerText = "Step 2: Normalizing Audio...";
+        bar.style.width = "60%";
+        await new Promise(r => setTimeout(r, 600));
 
-        // --- HARD NORMALIZATION LOGIC ---
         let maxAmp = 0;
         for (let s of audioData) if (Math.abs(s) > maxAmp) maxAmp = Math.abs(s);
         const ratio = maxAmp > 0 ? 0.98 / maxAmp : 1;
         const normalizedData = audioData.map(s => s * ratio);
 
+        status.innerText = "Step 3: Finalizing WAV Container...";
+        bar.style.width = "90%";
+        await new Promise(r => setTimeout(r, 500));
+
         const wavBuffer = createWavBuffer(normalizedData, sampleRate);
         const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-        const file = new File([blob], "morse_beast.wav", { type: 'audio/wav' });
+        const file = new File([blob], "morse_pro_final.wav", { type: 'audio/wav' });
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file] });
-            statusText.innerText = "✅ Dikirim dengan Power 100%!";
-        } else {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = "morse_v13.wav";
-            a.click();
-            statusText.innerText = "💾 Saved.";
-        }
+        bar.style.width = "100%";
+        status.innerText = "Ready to Share!";
+        
+        // Jeda bentar sebelum munculin menu share biar sistem HP napas
+        setTimeout(async () => {
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({ files: [file] });
+                } catch (e) {}
+            } else {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = "morse.wav";
+                a.click();
+            }
+            // Reset UI
+            btn.disabled = false;
+            loader.style.display = "none";
+            status.innerText = "Done!";
+        }, 300);
     }
 
     function createWavBuffer(samples, sampleRate) {
         const buffer = new ArrayBuffer(44 + samples.length * 2);
         const view = new DataView(buffer);
         const writeString = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
-        
         writeString(0, 'RIFF');
         view.setUint32(4, 36 + samples.length * 2, true);
         writeString(8, 'WAVE');
@@ -120,7 +147,6 @@
         view.setUint16(34, 16, true);
         writeString(36, 'data');
         view.setUint32(40, samples.length * 2, true);
-
         for (let i = 0; i < samples.length; i++) {
             let s = samples[i];
             view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
