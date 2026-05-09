@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morse WA Ultra-Stable V7</title>
+    <title>Morse WA Turbo V8</title>
     <style>
         body { font-family: sans-serif; background: #0b0e11; color: #00ff41; text-align: center; padding: 20px; }
         .box { max-width: 400px; margin: auto; border: 1px solid #00ff41; padding: 25px; border-radius: 12px; background: #161b22; box-shadow: 0 0 20px rgba(0,255,65,0.2); }
-        textarea { width: 100%; height: 100px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 10px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
+        textarea { width: 100%; height: 120px; background: #0b0e11; color: #fff; border: 1px solid #30363d; padding: 10px; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; outline: none; }
         button { width: 100%; padding: 14px; margin-bottom: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .btn-send { background: #00ff41; color: #000; }
         button:active { transform: scale(0.95); }
@@ -17,8 +17,8 @@
 <body>
 
 <div class="box">
-    <h3>📟 Morse Transmitter V7</h3>
-    <textarea id="inputTeks" placeholder="Ketik pesan rahasia..."></textarea>
+    <h3>📟 Morse Transmitter V8 (Turbo)</h3>
+    <textarea id="inputTeks" placeholder="Ketik pesan panjang di sini..."></textarea>
     <button class="btn-send" onclick="generateAndShare()">🚀 KIRIM KE WHATSAPP</button>
     <div id="status">Status: Ready</div>
 </div>
@@ -30,29 +30,29 @@
         const text = document.getElementById('inputTeks').value.toUpperCase();
         if(!text) return alert("Isi teks dulu!");
         const statusText = document.getElementById('status');
-        statusText.innerText = "⏳ Generating WAV...";
+        statusText.innerText = "⏳ Generating Turbo Morse...";
 
         const sampleRate = 8000;
-        const unit = 0.12; 
+        const unit = 0.08; // Lebih cepat (Turbo)
         const frequency = 800;
         let audioData = [];
 
         function addBeep(dur) {
-            const numSamples = sampleRate * dur;
+            const numSamples = Math.floor(sampleRate * dur);
             for (let i = 0; i < numSamples; i++) {
                 audioData.push(Math.sin(2 * Math.PI * frequency * i / sampleRate));
             }
         }
 
         function addSilence(dur) {
-            const numSamples = sampleRate * dur;
+            const numSamples = Math.floor(sampleRate * dur);
             for (let i = 0; i < numSamples; i++) {
                 audioData.push(0);
             }
         }
 
-        // --- PADDING AWAL (0.6 detik hening) ---
-        addSilence(0.6);
+        // --- PADDING AWAL (0.8 detik biar aman) ---
+        addSilence(0.8);
 
         // Encode Morse
         text.split('').forEach(char => {
@@ -62,28 +62,28 @@
                     addBeep(symbol === '.' ? unit : unit * 3);
                     addSilence(unit);
                 });
-                addSilence(unit * 2);
+                addSilence(unit * 2); // Jeda antar huruf
             }
         });
 
-        // --- PADDING AKHIR (0.6 detik hening) ---
-        addSilence(0.6);
+        // --- PADDING AKHIR EKSTRA (1.5 detik biar GAK KEPOTONG) ---
+        addSilence(1.5);
 
         const wavBuffer = createWavBuffer(audioData, sampleRate);
         const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-        const file = new File([blob], "morse_msg.wav", { type: 'audio/wav' });
+        const file = new File([blob], "morse_turbo.wav", { type: 'audio/wav' });
 
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             try {
-                await navigator.share({ files: [file], title: 'Morse' });
-                statusText.innerText = "✅ Sukses!";
+                await navigator.share({ files: [file], title: 'Turbo Morse' });
+                statusText.innerText = "✅ Sukses Terkirim!";
             } catch (err) {
                 statusText.innerText = "⚠️ Batal: " + err.message;
             }
         } else {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = "morse.wav";
+            a.download = "morse_turbo.wav";
             a.click();
             statusText.innerText = "💾 Downloaded.";
         }
